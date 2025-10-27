@@ -1,0 +1,32 @@
+[
+  {
+    "id": 6,
+    "name": "Charizard",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png",
+    "glb": "./src/imagenes/charizard.glb"
+  },
+  {
+    "id": 50,
+    "name": "Diglett",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/50.png",
+    "glb": "./src/imagenes/Diglett.glb"
+  },
+  {
+    "id": 149,
+    "name": "Dragonite",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png",
+    "glb": "./src/imagenes/dragonite.glb"
+  },
+  {
+    "id": 58,
+    "name": "Growlithe",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/58.png",
+    "glb": "./src/imagenes/Growlithe.glb"
+  },
+  {
+    "id": 700,
+    "name": "Sylveon",
+    "image": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/700.png",
+    "glb": "./src/imagenes/sylveon.glb"
+  }
+]

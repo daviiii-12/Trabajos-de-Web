@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parcial – Cartas Anime 3D (Pokémon)</title>
+  <link rel="stylesheet" href="./src/estilos/estilos.css" />
+  <!-- <model-viewer> v4 -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@^4.0.0/dist/model-viewer.min.js"></script>
+</head>
+<body>
+  <header class="topbar" role="banner">
+    <h1>Cartas Pokémon · 3D</h1>
+    <p class="autor">David Arango Aguirre · Ingeniería Multimedia</p>
+  </header>
+
+  <main class="contenedor" role="main" aria-live="polite">
+    <section class="fila" id="grid-cartas" aria-label="Fila de cartas">
+      <!-- Cartas generadas por JS -->
+    </section>
+  </main>
+
+  <!-- Sonidos locales (si no existen, no rompe) -->
+  <audio id="snd-aceptar" preload="auto" src="./src/sonidos/Aceptar.mp3"></audio>
+  <audio id="snd-cancelar" preload="auto" src="./src/sonidos/cancel.mp3"></audio>
+
+  <script defer src="./src/js/app.js"></script>
+</body>
+</html>
