@@ -229,6 +229,7 @@
   function toggleBotonera({ isInvocada, btnInvocar, btnCancelarInv, btnInvocarB, btnCancelarInvB }) {
     btnInvocar.disabled = isInvocada;
     btnCancelarInv.disabled = !isInvocada;
+    // En 3D si está invocada, oculto ambas y dejo solo Volver
     if (isInvocada) {
       btnInvocarB.classList.add('is-hidden');
       btnCancelarInvB.classList.add('is-hidden');
