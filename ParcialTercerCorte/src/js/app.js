@@ -169,7 +169,7 @@
     if (imagen) mv.setAttribute('poster', imagen);
     mv.setAttribute('ar','');
     mv.setAttribute('ar-modes','webxr scene-viewer quick-look');
-    mv.setAttribute('camera-controls',''); // control manual
+    mv.setAttribute('camera-controls',''); // manual
     mv.setAttribute('touch-action','pan-y');
     mv.setAttribute('shadow-intensity','1');
     mv.setAttribute('exposure','1');
@@ -220,30 +220,27 @@
 
     wrap.append(frente, dorso);
 
-    // según estado, oculta/activa botones
+    // visibilidad de botones según estado
     toggleBotonera({ isInvocada, btnInvocar, btnCancelarInv, btnInvocarB, btnCancelarInvB });
 
     return wrap;
   }
 
   function toggleBotonera({ isInvocada, btnInvocar, btnCancelarInv, btnInvocarB, btnCancelarInvB }) {
-    // Frente: puedes cancelar si está invocada
     btnInvocar.disabled = isInvocada;
     btnCancelarInv.disabled = !isInvocada;
-
-    // Dorso: si está invocada, oculto invocar y cancelar; dejo solo Volver
     if (isInvocada) {
       btnInvocarB.classList.add('is-hidden');
       btnCancelarInvB.classList.add('is-hidden');
     } else {
       btnInvocarB.classList.remove('is-hidden');
-      btnCancelarInvB.classList.add('is-hidden'); // oculto cancelar si aún no se invoca
+      btnCancelarInvB.classList.add('is-hidden');
     }
   }
 
   function refreshCard(k, keepFlip=false){
     const old = document.querySelector(`.wrap[data-key="${k}"]`);
-    if (!old) return render(); // fallback
+    if (!old) return render();
     const data = estado.get(k);
     const flipped = keepFlip ? old.classList.contains('flipped') : false;
     const first = old.classList.contains('first');

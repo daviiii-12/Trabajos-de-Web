@@ -28,10 +28,20 @@ body{
 .topbar h1{margin:0;font-size:1.15rem;font-weight:800}
 .autor{margin:0;color:var(--muted);font-size:.9rem}
 
-/* Layout */
-.contenedor{max-width:1200px;margin:0 auto;padding:20px}
+/* Layout contenedor */
+.contenedor{
+  max-width:1200px; margin:0 auto; padding:20px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+/* ===== Layout de cartas =====
+   Desktop: fila horizontal con scroll.
+   Tablets: 2 columnas.
+   Móvil chico: 1 columna centrada.
+*/
 .fila{
-  display:flex; gap:20px; align-items:stretch; overflow-x:auto; padding:6px 2px 14px;
+  display:flex; gap:20px; align-items:stretch;
+  overflow-x:auto; padding:6px 2px 14px;
   scroll-snap-type: x proximity;
 }
 .fila::-webkit-scrollbar{height:10px}
@@ -39,12 +49,17 @@ body{
 
 /* -------- Flip por CARA + efecto de presión -------- */
 .wrap{
-  position:relative; width:280px; height:400px; scroll-snap-align:start;
-  border-radius:14px; filter: drop-shadow(0 10px 24px rgba(0,0,0,.5));
+  position:relative;
+  width: clamp(260px, 26vw, 300px);
+  aspect-ratio: 7 / 10;              /* mantiene proporción en todo tamaño */
+  scroll-snap-align:start;
+  border-radius:14px;
+  filter: drop-shadow(0 10px 24px rgba(0,0,0,.5));
   perspective:1200px; overflow:hidden;
   will-change:transform; transition: transform .12s ease;  /* efecto press */
 }
-.wrap.is-press{ transform: translateY(4px); } /* baja un poquito al tocar */
+.wrap.is-press{ transform: translateY(4px); }
+
 .cara{
   position:absolute; inset:0; border-radius:14px; overflow:hidden;
   background:#0c1330; border:1px solid var(--stroke);
@@ -58,10 +73,7 @@ body{
     radial-gradient(60% 40% at 80% 0%, rgba(255,255,255,.18), transparent 60%),
     linear-gradient(180deg, #131a3b, #0c1330);
 }
-.cara-dorso{
-  transform: rotateY(180deg);
-  background:#0b1020;
-}
+.cara-dorso{ transform: rotateY(180deg); background:#0b1020; }
 .wrap.flipped .cara-frente{ transform: rotateY(180deg); }
 .wrap.flipped .cara-dorso{ transform: rotateY(0deg); }
 
@@ -73,9 +85,10 @@ body{
   background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.35) 35%, rgba(0,0,0,.55));
   display:flex; flex-direction:column; gap:8px;
 }
-.header{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.header{ display:flex; justify-content:space-between; align-items:center; gap:10px; min-width:0; }
 .nombre{
-  margin:0; font-weight:800; letter-spacing:.2px; font-size:1.05rem;
+  margin:0; font-weight:800; letter-spacing:.2px;
+  font-size: clamp(.95rem, 1.2vw, 1.05rem);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .badge{
@@ -94,6 +107,7 @@ body{
   color:white; padding:8px 12px; border-radius:10px;
   font-weight:700; letter-spacing:.2px; box-shadow: var(--shadow);
   transition: transform .05s ease, filter .2s ease;
+  font-size: .95rem;
 }
 .btn:hover{filter:brightness(1.08)}
 .btn:active{transform: translateY(1px) scale(.98)}
@@ -108,7 +122,7 @@ model-viewer{ width:100%; height:100%; display:block; }
   display:flex; gap:8px; align-items:center; justify-content:space-between;
   padding:10px 12px; border-top:1px solid var(--stroke);
   background: linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.45));
-  flex-wrap: wrap; /* evita cortes */
+  flex-wrap: wrap; /* evita cortes en pantallas angostas */
 }
 .dorso-left{ display:flex; align-items:center; gap:10px; min-width:0 }
 .thumb{ width:40px; height:40px; object-fit:contain; background:#0a0f24; border-radius:8px; border:1px solid var(--stroke) }
@@ -120,21 +134,33 @@ model-viewer{ width:100%; height:100%; display:block; }
 }
 .wrap.first .cara-dorso{ animation: dorsoReveal .5s ease both; }
 
-/* Movimiento reducido */
-@media (prefers-reduced-motion: reduce){
-  .cara{ transition:none }
-  .wrap{ transition:none }
-  .wrap.first .cara-dorso{ animation:none }
-  .btn{ transition:none }
+/* ======= RESPONSIVE ======= */
+/* Tablets: dejo grid de 2 columnas, cartas centradas */
+@media (max-width: 768px){
+  .fila{
+    display:grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap:16px;
+    overflow-x:visible; /* sin scroll horizontal */
+  }
+  .wrap{
+    width: min(44vw, 360px);
+  }
+  .btn{ font-size:.9rem; padding:8px 10px; }
+  .meta{ font-size:.85rem }
 }
 
-/* Responsive */
-@media (max-width: 900px){
-  .wrap{ width:240px; height:360px; }
-  .nombre{font-size:1rem}
-}
-@media (max-width: 640px){
-  .wrap{ width:220px; height:320px; }
+/* Móvil chico: 1 columna centrada, carta casi a pantalla completa */
+@media (max-width: 480px){
+  .fila{
+    grid-template-columns: 1fr;
+    justify-items:center;
+  }
+  .wrap{
+    width: min(92vw, 420px);
+  }
+  .btn{ font-size:.88rem; padding:8px 10px; }
+  .actions{ gap:6px }
 }
 
-/* Nota: los @media a 900px y 640px reducen ancho/alto de carta (y mantienen la fila). */
+/* Nota: en 768px paso a 2 columnas sin scroll; en 480px a 1 columna centrada y la carta usa ~92vw. */
