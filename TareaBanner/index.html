@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dragon Ball — Banner Interactivo</title>
+  <meta name="description" content="Banner web de Dragon Ball con información en español, personajes y modelo 3D." />
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <link rel="stylesheet" href="./src/css/estilos.css" />
+</head>
+<body>
+  <header class="encabezado" role="banner">
+    <div class="brand">
+      <img src="./src/imagenes/logoDragon.svg" alt="Logo Dragon Ball" class="logo" />
+      <span class="marca">Dragon Ball</span>
+    </div>
+    <nav aria-label="Navegación principal">
+      <a href="#banner">Inicio</a>
+      <a href="#info">Información</a>
+      <a href="#acerca">Acerca</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Banner -->
+    <section id="banner" class="banner" aria-label="Banner de la serie">
+      <div class="banner__info" id="info">
+        <h1 id="nombre-serie">Dragon Ball Z</h1>
+        <p id="resumen" class="resumen">Cargando sinopsis…</p>
+
+        <div class="grid-datos">
+          <div>
+            <h2 class="subtitulo">Temporadas / Sagas</h2>
+            <ul id="lista-temporadas"><li>—</li></ul>
+          </div>
+          <div>
+            <h2 class="subtitulo">Personajes principales</h2>
+            <ul id="lista-personajes" class="personajes">
+              <li class="personaje sin-foto"><span>Cargando…</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="botones">
+          <button id="btn-rotar" class="btn" type="button" aria-pressed="true">Pausar rotación</button>
+          <a class="btn btn-secundario" href="#acerca" role="button">Saber más</a>
+        </div>
+      </div>
+
+      <div class="banner__visor" aria-label="Visor 3D">
+        <img class="fallback" src="./src/imagenes/poster.jpg" alt="Póster de Dragon Ball" />
+        <model-viewer
+          id="visor3d"
+          src="./src/imagenes/vegetto.glb"
+          alt="Vegetto en 3D"
+          camera-controls
+          auto-rotate
+          rotation-per-second="25deg"
+          auto-rotate-delay="0"
+          touch-action="pan-y"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          poster="./src/imagenes/poster.jpg"
+          environment-image="https://modelviewer.dev/shared-assets/environments/moon_1k.hdr"
+          exposure="1.2"
+          shadow-intensity="1"
+          style="width:100%; height:100%;">
+        </model-viewer>
+      </div>
+    </section>
+
+    <section id="acerca" class="acerca" aria-label="Acerca">
+      <h2>Acerca</h2>
+      <p>
+        Proyecto de banner con integración 3D y datos en español (Wikipedia + API). El modelo es un GLB de Vegetto.
+       
+      </p>
+    </section>
+  </main>
+
+  <footer class="pie" role="contentinfo">
+    <small>David Arango Aguirre — Ingeniería Multimedia</small>
+  </footer>
+
+  <script type="module" src="./src/js/app.js"></script>
+  <noscript>Activa JavaScript para ver el contenido interactivo.</noscript>
+</body>
+</html>

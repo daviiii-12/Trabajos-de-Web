@@ -1,0 +1,6 @@
+{
+  "nombre": "Dragon Ball Z",
+  "resumen": "Serie anime basada en el manga de Akira Toriyama que sigue a Goku y sus amigos defendiendo la Tierra de amenazas cada vez más poderosas.",
+  "temporadas": ["Saiyajin", "Namek y Freezer", "Cell", "Majin Buu"],
+  "personajes": ["Goku", "Vegeta", "Gohan", "Piccolo", "Trunks", "Bulma"]
+}
