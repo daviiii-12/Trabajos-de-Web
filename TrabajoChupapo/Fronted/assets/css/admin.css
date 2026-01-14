@@ -1,0 +1,32 @@
+/* =========================
+   admin.css
+   - Small visual tweaks for admin dashboard
+   ========================= */
+
+#subHeader{
+  color: rgba(255,255,255,0.72);
+}
+
+/* Make tables feel a bit more "dashboard" */
+.table-wrap{
+  background: rgba(255,255,255,0.045);
+}
+
+/* Buttons in table cells: make them compact on desktop */
+@media (min-width: 768px){
+  td .btn{
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+  }
+}
+
+/* Improve row spacing on very small screens */
+@media (max-width: 420px){
+  .row{
+    flex-wrap: wrap;
+  }
+  #closeDayBtn{
+    width: 100%;
+  }
+}

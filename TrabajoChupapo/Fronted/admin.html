@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Préstamos | Admin</title>
+
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <link rel="stylesheet" href="./assets/css/responsive.css" />
+  <link rel="stylesheet" href="./assets/css/admin.css" />
+</head>
+
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="container">
+      <div class="row between">
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true"></div>
+          <div>
+            <h1>Panel Administrador</h1>
+            <p id="subHeader">Resumen y control del negocio</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <span class="badge" id="userBadge">👤 Usuario</span>
+          <button class="btn ghost" id="logoutBtn" type="button">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container stack">
+
+    <!-- Header Row -->
+    <section class="row between">
+      <div>
+        <h2 class="card-title" style="margin:0;">Hoy</h2>
+        <p class="card-subtitle" id="todayText">Cargando fecha...</p>
+      </div>
+
+      <div class="row">
+        <span class="badge" id="closeBadge">⏳ Día sin cerrar</span>
+        <button class="btn primary" id="closeDayBtn" type="button">✔ Cerrar día</button>
+      </div>
+    </section>
+
+    <!-- Summary cards -->
+    <section class="grid-3">
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Recaudo del día</h3>
+        <p class="card-subtitle">Total cobrado hoy</p>
+        <div class="mt-2 row between">
+          <span class="badge ok">📥 Cobrado</span>
+          <strong id="sumRecaudo" style="font-size:20px;">$0</strong>
+        </div>
+      </div>
+
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Prestado del día</h3>
+        <p class="card-subtitle">Total prestado hoy</p>
+        <div class="mt-2 row between">
+          <span class="badge">💸 Prestado</span>
+          <strong id="sumPrestado" style="font-size:20px;">$0</strong>
+        </div>
+      </div>
+
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Intereses estimados</h3>
+        <p class="card-subtitle">Estimación del día (demo)</p>
+        <div class="mt-2 row between">
+          <span class="badge">📈 Interés</span>
+          <strong id="sumIntereses" style="font-size:20px;">$0</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Corrections -->
+    <section class="card">
+      <div class="row between">
+        <div>
+          <h3 class="card-title" style="margin:0;">Solicitudes de corrección</h3>
+          <p class="card-subtitle">Cambios que requieren aprobación del administrador</p>
+        </div>
+        <span class="badge warn" id="correctionsCount">0 pendientes</span>
+      </div>
+
+      <div class="mt-2 table-wrap">
+        <table aria-label="Tabla de correcciones">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Cobrador</th>
+              <th>Cliente</th>
+              <th>Campo</th>
+              <th>Actual</th>
+              <th>Solicitado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="correctionsBody"></tbody>
+        </table>
+      </div>
+
+      <p class="small mt-2">
+        Regla: monto/porcentaje/fecha no se editan por cobrador. Solo solicitar. Admin aprueba y queda en auditoría.
+      </p>
+    </section>
+
+    <!-- Portfolios -->
+    <section class="card">
+      <div class="row between">
+        <div>
+          <h3 class="card-title" style="margin:0;">Carteras por cobrador</h3>
+          <p class="card-subtitle">Estado general (demo)</p>
+        </div>
+
+        <div class="row">
+          <button class="btn" id="exportCSV" type="button">⬇ Exportar CSV</button>
+        </div>
+      </div>
+
+      <div class="mt-2 table-wrap">
+        <table aria-label="Tabla de carteras">
+          <thead>
+            <tr>
+              <th>Cobrador</th>
+              <th>Clientes activos</th>
+              <th>Saldo total</th>
+              <th>Recaudo hoy</th>
+              <th>Último registro</th>
+            </tr>
+          </thead>
+          <tbody id="portfoliosBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Auth helper -->
+  <script src="./assets/js/auth.js"></script>
+
+  <script>
+    // ========= Guard rails =========
+    Auth.requireRole("admin");
+
+    // ========= Helpers =========
+    const money = (n) => {
+      try {
+        return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(n);
+      } catch {
+        return "$" + (n || 0);
+      }
+    };
+
+    // ========= Header =========
+    const username = Auth.getUsername() || "admin";
+    document.getElementById("userBadge").textContent = `👤 ${username}`;
+
+    const d = new Date();
+    document.getElementById("todayText").textContent =
+      d.toLocaleDateString("es-CO", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+    // ========= Demo Summary =========
+    const demoSummary = {
+      recaudo: 425000,
+      prestado: 900000,
+      intereses: 78000
+    };
+    document.getElementById("sumRecaudo").textContent = money(demoSummary.recaudo);
+    document.getElementById("sumPrestado").textContent = money(demoSummary.prestado);
+    document.getElementById("sumIntereses").textContent = money(demoSummary.intereses);
+
+    // ========= Corrections (NOW reads shared localStorage from cobrador.html) =========
+    const CORR_KEY = "demo:corrections";
+    const readCorr = () => {
+      try { return JSON.parse(localStorage.getItem(CORR_KEY)) ?? []; }
+      catch { return []; }
+    };
+    const writeCorr = (arr) => localStorage.setItem(CORR_KEY, JSON.stringify(arr));
+
+    const correctionsBody = document.getElementById("correctionsBody");
+    const correctionsCount = document.getElementById("correctionsCount");
+
+    const renderCorrections = () => {
+      const all = readCorr().filter(c => c.estado === "pendiente");
+      correctionsBody.innerHTML = "";
+
+      correctionsCount.textContent = all.length ? `${all.length} pendientes` : "0 pendientes";
+
+      if (!all.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="8" class="small">No hay solicitudes pendientes 🎉</td>`;
+        correctionsBody.appendChild(tr);
+        return;
+      }
+
+      all.forEach((c) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${c.fecha}</td>
+          <td>${c.hora}</td>
+          <td>${c.cobrador}</td>
+          <td>${escapeHTML(c.cliente)}</td>
+          <td>${c.campo}</td>
+          <td>${escapeHTML(c.valorActual)}</td>
+          <td>${escapeHTML(c.valorSolicitado)}</td>
+          <td>
+            <div class="row">
+              <button class="btn primary" type="button" data-approve="${c.id}">Aprobar</button>
+              <button class="btn danger" type="button" data-reject="${c.id}">Rechazar</button>
+            </div>
+          </td>
+        `;
+        correctionsBody.appendChild(tr);
+      });
+    };
+
+    correctionsBody.addEventListener("click", (e) => {
+      const approveId = e.target.getAttribute("data-approve");
+      const rejectId = e.target.getAttribute("data-reject");
+      if (!approveId && !rejectId) return;
+
+      const all = readCorr();
+      const id = approveId || rejectId;
+      const idx = all.findIndex(x => x.id === id);
+
+      if (idx === -1) return;
+
+      if (approveId) {
+        all[idx].estado = "aprobado";
+        all[idx].admin = username;
+        all[idx].fechaDecision = new Date().toLocaleDateString("es-CO");
+        all[idx].horaDecision = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+        writeCorr(all);
+        alert("Aprobado ✅ (demo). En versión final esto también actualiza el préstamo.");
+      }
+
+      if (rejectId) {
+        all[idx].estado = "rechazado";
+        all[idx].admin = username;
+        all[idx].fechaDecision = new Date().toLocaleDateString("es-CO");
+        all[idx].horaDecision = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+        writeCorr(all);
+        alert("Rechazado ❌ (demo). En versión final se guarda motivo de rechazo.");
+      }
+
+      renderCorrections();
+    });
+
+    function escapeHTML(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    renderCorrections();
+
+    // ========= Portfolios (demo) =========
+    const demoPortfolios = [
+      { cobrador: "cobrador1", clientes: 18, saldo: 3850000, recaudoHoy: 210000, ultimo: "Hoy 12:05" },
+      { cobrador: "cobrador2", clientes: 11, saldo: 2400000, recaudoHoy: 145000, ultimo: "Hoy 11:48" },
+      { cobrador: "cobrador3", clientes: 7,  saldo: 1200000, recaudoHoy: 70000,  ultimo: "Hoy 10:33" }
+    ];
+
+    const portfoliosBody = document.getElementById("portfoliosBody");
+    const renderPortfolios = () => {
+      portfoliosBody.innerHTML = "";
+      demoPortfolios.forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.cobrador}</td>
+          <td>${p.clientes}</td>
+          <td>${money(p.saldo)}</td>
+          <td>${money(p.recaudoHoy)}</td>
+          <td>${p.ultimo}</td>
+        `;
+        portfoliosBody.appendChild(tr);
+      });
+    };
+    renderPortfolios();
+
+    // ========= Daily close =========
+    const closeBadge = document.getElementById("closeBadge");
+    const closeDayBtn = document.getElementById("closeDayBtn");
+    const closeKey = "closedDay:" + Auth.todayKey();
+
+    const setClosedUI = (closed) => {
+      if (closed) {
+        closeBadge.className = "badge ok";
+        closeBadge.textContent = "✅ Día cerrado";
+        closeDayBtn.disabled = true;
+        closeDayBtn.textContent = "✔ Día cerrado";
+      } else {
+        closeBadge.className = "badge warn";
+        closeBadge.textContent = "⏳ Día sin cerrar";
+        closeDayBtn.disabled = false;
+        closeDayBtn.textContent = "✔ Cerrar día";
+      }
+    };
+
+    setClosedUI(localStorage.getItem(closeKey) === "true");
+
+    closeDayBtn.addEventListener("click", () => {
+      const ok = confirm("¿Confirmas el cierre del día? En versión final esto bloqueará modificaciones del día.");
+      if (!ok) return;
+
+      localStorage.setItem(closeKey, "true");
+      setClosedUI(true);
+      alert("Día cerrado ✅ (demo).");
+    });
+
+    // ========= Export CSV =========
+    document.getElementById("exportCSV").addEventListener("click", () => {
+      const header = ["cobrador","clientes_activos","saldo_total","recaudo_hoy","ultimo_registro"];
+      const rows = demoPortfolios.map(p => [p.cobrador, p.clientes, p.saldo, p.recaudoHoy, p.ultimo]);
+      const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
+
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "carteras.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // ========= Logout =========
+    document.getElementById("logoutBtn").addEventListener("click", () => Auth.logout("./index.html"));
+  </script>
+</body>
+</html>

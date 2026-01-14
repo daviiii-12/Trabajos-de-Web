@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Préstamos | Cobrador</title>
+
+  <link rel="stylesheet" href="./assets/css/main.css" />
+  <link rel="stylesheet" href="./assets/css/responsive.css" />
+  <link rel="stylesheet" href="./assets/css/cobrador.css" />
+</head>
+
+<body>
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="container">
+      <div class="row between">
+        <div class="brand">
+          <div class="brand-badge" aria-hidden="true"></div>
+          <div>
+            <h1>Panel Cobrador</h1>
+            <p id="subHeader">Registro de préstamos y pagos</p>
+          </div>
+        </div>
+
+        <div class="row">
+          <span class="badge" id="dayBadge">⏳ Día abierto</span>
+          <span class="badge" id="userBadge">👤</span>
+          <button class="btn ghost" id="logoutBtn" type="button">Salir</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container stack">
+
+    <!-- Intro + rules -->
+    <section class="card soft">
+      <div class="row between">
+        <div>
+          <h2 class="card-title" style="margin:0;">Mis registros</h2>
+          <p class="card-subtitle" id="todayText">Cargando fecha...</p>
+        </div>
+        <span class="badge warn" title="Regla antifraude">
+          🔒 No puedes editar monto/% después de guardar
+        </span>
+      </div>
+
+      <p class="small mt-2">
+        Si te equivocas digitando el monto o el porcentaje, usa <strong>“Solicitar corrección”</strong>.
+        Queda en “pendiente” para que el administrador lo apruebe o rechace.
+      </p>
+
+      <div class="row mt-2" style="flex-wrap:wrap;">
+        <button class="btn primary" id="openLoanForm" type="button">➕ Registrar préstamo</button>
+        <button class="btn" id="openPaymentForm" type="button">📥 Registrar pago</button>
+        <button class="btn" id="exportMyCSV" type="button">⬇ Exportar mis préstamos (CSV)</button>
+      </div>
+
+      <div class="badge" id="uiMsg" style="display:none;"></div>
+    </section>
+
+    <!-- Summary -->
+    <section class="grid-3">
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Recaudo hoy</h3>
+        <p class="card-subtitle">Pagos registrados hoy</p>
+        <div class="mt-2 row between">
+          <span class="badge ok">📥 Cobrado</span>
+          <strong id="sumCobrado" style="font-size:20px;">$0</strong>
+        </div>
+      </div>
+
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Prestado hoy</h3>
+        <p class="card-subtitle">Préstamos creados hoy</p>
+        <div class="mt-2 row between">
+          <span class="badge">💸 Prestado</span>
+          <strong id="sumPrestado" style="font-size:20px;">$0</strong>
+        </div>
+      </div>
+
+      <div class="card soft">
+        <h3 class="card-title" style="margin:0;">Clientes activos</h3>
+        <p class="card-subtitle">En mi cartera</p>
+        <div class="mt-2 row between">
+          <span class="badge">👥 Clientes</span>
+          <strong id="sumClientes" style="font-size:20px;">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loans table -->
+    <section class="card">
+      <div class="row between">
+        <div>
+          <h3 class="card-title" style="margin:0;">Mis préstamos</h3>
+          <p class="card-subtitle">Lista de préstamos creados por mí</p>
+        </div>
+        <span class="badge" id="loansCount">0 préstamos</span>
+      </div>
+
+      <div class="mt-2 table-wrap">
+        <table aria-label="Tabla de préstamos">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Monto</th>
+              <th>%</th>
+              <th>Saldo (demo)</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="loansBody"></tbody>
+        </table>
+      </div>
+
+      <p class="small mt-2">
+        “Saldo (demo)” se calcula como monto - abonos registrados. (Después se hace cálculo real con interés y cuotas).
+      </p>
+    </section>
+
+    <!-- Payments table -->
+    <section class="card">
+      <div class="row between">
+        <div>
+          <h3 class="card-title" style="margin:0;">Pagos de hoy</h3>
+          <p class="card-subtitle">Abonos registrados en la fecha actual</p>
+        </div>
+        <span class="badge" id="paymentsCount">0 pagos</span>
+      </div>
+
+      <div class="mt-2 table-wrap">
+        <table aria-label="Tabla de pagos">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Cliente</th>
+              <th>Valor</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody id="paymentsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Dialog: Loan -->
+  <dialog id="loanDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="row between">
+        <h3 class="card-title" style="margin:0;">➕ Registrar préstamo</h3>
+        <button class="btn ghost" value="cancel" type="submit">✕</button>
+      </div>
+
+      <div class="stack mt-2">
+        <div class="field">
+          <label class="label" for="loanCliente">Cliente</label>
+          <input class="input" id="loanCliente" type="text" placeholder="Nombre del cliente" required />
+          <div class="help">Ej: Juan Pérez</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="loanMonto">Monto (COP)</label>
+            <input class="input" id="loanMonto" type="number" min="1" step="1" placeholder="Ej: 500000" required />
+            <div class="help">Solo números, sin puntos.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="loanPorc">Porcentaje (%)</label>
+            <input class="input" id="loanPorc" type="number" min="0" step="0.1" placeholder="Ej: 20" required />
+            <div class="help">Ej: 15, 20, 25…</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="loanObs">Observación (opcional)</label>
+          <input class="input" id="loanObs" type="text" placeholder="Ej: se presta por 15 días" />
+        </div>
+
+        <div class="badge warn">
+          ⚠️ Al guardar, no podrás editar monto ni porcentaje. Si hay error: solicitar corrección.
+        </div>
+
+        <div class="row" style="flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn" value="cancel" type="submit">Cancelar</button>
+          <button class="btn primary" id="saveLoanBtn" type="button">Guardar préstamo</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Dialog: Payment -->
+  <dialog id="paymentDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="row between">
+        <h3 class="card-title" style="margin:0;">📥 Registrar pago</h3>
+        <button class="btn ghost" value="cancel" type="submit">✕</button>
+      </div>
+
+      <div class="stack mt-2">
+        <div class="field">
+          <label class="label" for="payCliente">Cliente</label>
+          <select class="input" id="payCliente" required>
+            <option value="">Selecciona un cliente...</option>
+          </select>
+          <div class="help">Solo aparecen clientes con préstamo activo (demo).</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="payValor">Valor del abono (COP)</label>
+            <input class="input" id="payValor" type="number" min="1" step="1" placeholder="Ej: 20000" required />
+          </div>
+
+          <div class="field">
+            <label class="label" for="payObs">Observación (opcional)</label>
+            <input class="input" id="payObs" type="text" placeholder="Ej: pago parcial" />
+          </div>
+        </div>
+
+        <div class="row" style="flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn" value="cancel" type="submit">Cancelar</button>
+          <button class="btn primary" id="savePayBtn" type="button">Guardar pago</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Dialog: Correction request -->
+  <dialog id="corrDialog">
+    <form method="dialog" class="dialog-card">
+      <div class="row between">
+        <h3 class="card-title" style="margin:0;">🧾 Solicitar corrección</h3>
+        <button class="btn ghost" value="cancel" type="submit">✕</button>
+      </div>
+
+      <p class="card-subtitle mt-1" id="corrSubtitle">Préstamo seleccionado</p>
+
+      <div class="stack mt-2">
+        <div class="field">
+          <label class="label" for="corrField">Campo a corregir</label>
+          <select class="input" id="corrField" required>
+            <option value="monto">Monto</option>
+            <option value="porcentaje">Porcentaje</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label class="label" for="corrActual">Valor actual</label>
+            <input class="input" id="corrActual" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label class="label" for="corrNuevo">Nuevo valor solicitado</label>
+            <input class="input" id="corrNuevo" type="text" placeholder="Ej: 450000 o 15" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="corrMotivo">Motivo</label>
+          <input class="input" id="corrMotivo" type="text" placeholder="Ej: me equivoqué digitando" required />
+        </div>
+
+        <div class="badge warn">
+          Quedará en <strong>PENDIENTE</strong> hasta que el administrador lo apruebe.
+        </div>
+
+        <div class="row" style="flex-wrap:wrap; justify-content:flex-end;">
+          <button class="btn" value="cancel" type="submit">Cancelar</button>
+          <button class="btn primary" id="saveCorrBtn" type="button">Enviar solicitud</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Auth helper -->
+  <script src="./assets/js/auth.js"></script>
+
+  <script>
+    // ========= Guard rails =========
+    Auth.requireRole("cobrador");
+
+    const username = Auth.getUsername() || "cobrador";
+    document.getElementById("userBadge").textContent = `👤 ${username}`;
+
+    // ========= Helpers =========
+    const money = (n) => {
+      try {
+        return new Intl.NumberFormat("es-CO", { style:"currency", currency:"COP", maximumFractionDigits:0 }).format(n);
+      } catch {
+        return "$" + (n || 0);
+      }
+    };
+
+    const nowLabel = () => new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+
+    // UI date text
+    const d = new Date();
+    document.getElementById("todayText").textContent =
+      d.toLocaleDateString("es-CO", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+
+    // ========= Day close lock (from Auth) =========
+    const isClosed = Auth.isDayClosed();
+    const dayBadge = document.getElementById("dayBadge");
+    dayBadge.className = "badge " + (isClosed ? "ok" : "warn");
+    dayBadge.textContent = isClosed ? "✅ Día cerrado" : "⏳ Día abierto";
+
+    const uiMsg = document.getElementById("uiMsg");
+    const showMsg = (text, type="warn") => {
+      uiMsg.style.display = "inline-flex";
+      uiMsg.className = "badge " + (type === "ok" ? "ok" : "warn");
+      uiMsg.textContent = text;
+    };
+    const hideMsg = () => {
+      uiMsg.style.display = "none";
+      uiMsg.textContent = "";
+    };
+
+    if (isClosed) {
+      showMsg("El día está cerrado. No puedes registrar préstamos ni pagos (demo).", "warn");
+      document.getElementById("openLoanForm").disabled = true;
+      document.getElementById("openPaymentForm").disabled = true;
+    }
+
+    // ========= Storage (per cobrador) =========
+    const NS = `demo:${username}:`;
+    const readJSON = (k, fallback) => {
+      try { return JSON.parse(localStorage.getItem(NS + k)) ?? fallback; }
+      catch { return fallback; }
+    };
+    const writeJSON = (k, value) => localStorage.setItem(NS + k, JSON.stringify(value));
+
+    // Shared corrections key (admin reads this)
+    const CORR_KEY = "demo:corrections";
+    const readCorr = () => {
+      try { return JSON.parse(localStorage.getItem(CORR_KEY)) ?? []; }
+      catch { return []; }
+    };
+    const writeCorr = (arr) => localStorage.setItem(CORR_KEY, JSON.stringify(arr));
+
+    let loans = readJSON("loans", []);
+    let payments = readJSON("payments", []);
+
+    // ========= Dialogs =========
+    const loanDialog = document.getElementById("loanDialog");
+    const paymentDialog = document.getElementById("paymentDialog");
+    const corrDialog = document.getElementById("corrDialog");
+
+    const openDialog = (dlg) => {
+      hideMsg();
+      if (typeof dlg.showModal === "function") dlg.showModal();
+      else alert("Tu navegador no soporta dialogs. (En Chrome sí funciona).");
+    };
+
+    document.getElementById("openLoanForm").addEventListener("click", () => {
+      if (isClosed) return;
+      document.getElementById("loanCliente").value = "";
+      document.getElementById("loanMonto").value = "";
+      document.getElementById("loanPorc").value = "";
+      document.getElementById("loanObs").value = "";
+      openDialog(loanDialog);
+    });
+
+    document.getElementById("openPaymentForm").addEventListener("click", () => {
+      if (isClosed) return;
+      fillClientSelect();
+      document.getElementById("payValor").value = "";
+      document.getElementById("payObs").value = "";
+      openDialog(paymentDialog);
+    });
+
+    // ========= Render =========
+    const loansBody = document.getElementById("loansBody");
+    const paymentsBody = document.getElementById("paymentsBody");
+    const loansCount = document.getElementById("loansCount");
+    const paymentsCount = document.getElementById("paymentsCount");
+
+    const calcAbonosCliente = (cliente) =>
+      payments
+        .filter(p => p.cliente.toLowerCase() === cliente.toLowerCase())
+        .reduce((acc, p) => acc + Number(p.valor || 0), 0);
+
+    const loanSaldo = (loan) => Math.max(0, Number(loan.monto) - calcAbonosCliente(loan.cliente));
+
+    const renderLoans = () => {
+      loansBody.innerHTML = "";
+      loansCount.textContent = `${loans.length} préstamo${loans.length === 1 ? "" : "s"}`;
+
+      if (!loans.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="6" class="small">Aún no tienes préstamos registrados.</td>`;
+        loansBody.appendChild(tr);
+        return;
+      }
+
+      loans.forEach((l, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${l.fecha}</td>
+          <td>${escapeHTML(l.cliente)}</td>
+          <td>${money(Number(l.monto))}</td>
+          <td>${Number(l.porcentaje)}%</td>
+          <td>${money(loanSaldo(l))}</td>
+          <td>
+            <div class="row" style="flex-wrap:wrap;">
+              <button class="btn" type="button" data-corr="${idx}">🧾 Solicitar corrección</button>
+            </div>
+          </td>
+        `;
+        loansBody.appendChild(tr);
+      });
+    };
+
+    const renderPaymentsToday = () => {
+      paymentsBody.innerHTML = "";
+      const today = Auth.todayKey();
+      const todayPays = payments.filter(p => p.fechaKey === today);
+
+      paymentsCount.textContent = `${todayPays.length} pago${todayPays.length === 1 ? "" : "s"}`;
+
+      if (!todayPays.length) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td colspan="4" class="small">No has registrado pagos hoy.</td>`;
+        paymentsBody.appendChild(tr);
+        return;
+      }
+
+      todayPays.slice().reverse().forEach(p => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${p.hora}</td>
+          <td>${escapeHTML(p.cliente)}</td>
+          <td>${money(Number(p.valor))}</td>
+          <td>${escapeHTML(p.obs || "")}</td>
+        `;
+        paymentsBody.appendChild(tr);
+      });
+    };
+
+    const renderSummary = () => {
+      const today = Auth.todayKey();
+
+      const prestadoHoy = loans
+        .filter(l => l.fechaKey === today)
+        .reduce((acc, l) => acc + Number(l.monto || 0), 0);
+
+      const cobradoHoy = payments
+        .filter(p => p.fechaKey === today)
+        .reduce((acc, p) => acc + Number(p.valor || 0), 0);
+
+      const clientes = new Set(loans.map(l => l.cliente.toLowerCase())).size;
+
+      document.getElementById("sumPrestado").textContent = money(prestadoHoy);
+      document.getElementById("sumCobrado").textContent = money(cobradoHoy);
+      document.getElementById("sumClientes").textContent = String(clientes);
+    };
+
+    const refreshAll = () => {
+      writeJSON("loans", loans);
+      writeJSON("payments", payments);
+      renderLoans();
+      renderPaymentsToday();
+      renderSummary();
+    };
+
+    // ========= Save loan =========
+    document.getElementById("saveLoanBtn").addEventListener("click", () => {
+      const cliente = document.getElementById("loanCliente").value.trim();
+      const monto = Number(document.getElementById("loanMonto").value);
+      const porcentaje = Number(document.getElementById("loanPorc").value);
+      const obs = document.getElementById("loanObs").value.trim();
+
+      if (!cliente || !monto || monto <= 0 || porcentaje < 0) {
+        alert("Revisa: cliente, monto válido y porcentaje válido.");
+        return;
+      }
+
+      const loan = {
+        id: cryptoId(),
+        cliente,
+        monto,
+        porcentaje,
+        obs,
+        fechaKey: Auth.todayKey(),
+        fecha: new Date().toLocaleDateString("es-CO"),
+        creadoPor: username
+      };
+
+      loans.push(loan);
+      refreshAll();
+      loanDialog.close();
+      showMsg("Préstamo guardado ✅ (recuerda: no se edita, solo solicitar corrección).", "ok");
+    });
+
+    // ========= Fill select =========
+    const fillClientSelect = () => {
+      const sel = document.getElementById("payCliente");
+      const current = sel.value;
+      sel.innerHTML = `<option value="">Selecciona un cliente...</option>`;
+
+      const clients = Array.from(new Set(loans.map(l => l.cliente)))
+        .sort((a,b) => a.localeCompare(b, "es"));
+
+      clients.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        sel.appendChild(opt);
+      });
+
+      if (clients.includes(current)) sel.value = current;
+    };
+
+    // ========= Save payment =========
+    document.getElementById("savePayBtn").addEventListener("click", () => {
+      const cliente = document.getElementById("payCliente").value.trim();
+      const valor = Number(document.getElementById("payValor").value);
+      const obs = document.getElementById("payObs").value.trim();
+
+      if (!cliente || !valor || valor <= 0) {
+        alert("Selecciona un cliente y escribe un valor válido.");
+        return;
+      }
+
+      const pay = {
+        id: cryptoId(),
+        cliente,
+        valor,
+        obs,
+        fechaKey: Auth.todayKey(),
+        fecha: new Date().toLocaleDateString("es-CO"),
+        hora: nowLabel(),
+        creadoPor: username
+      };
+
+      payments.push(pay);
+      refreshAll();
+      paymentDialog.close();
+      showMsg("Pago guardado ✅", "ok");
+    });
+
+    // ========= Corrections =========
+    let selectedLoanIndex = null;
+
+    loansBody.addEventListener("click", (e) => {
+      const idx = e.target.getAttribute("data-corr");
+      if (idx === null) return;
+
+      selectedLoanIndex = Number(idx);
+      const loan = loans[selectedLoanIndex];
+
+      document.getElementById("corrSubtitle").textContent =
+        `Cliente: ${loan.cliente} — Monto: ${money(loan.monto)} — %: ${loan.porcentaje}%`;
+
+      document.getElementById("corrField").value = "monto";
+      document.getElementById("corrActual").value = String(loan.monto);
+      document.getElementById("corrNuevo").value = "";
+      document.getElementById("corrMotivo").value = "";
+
+      openDialog(corrDialog);
+    });
+
+    document.getElementById("corrField").addEventListener("change", () => {
+      if (selectedLoanIndex === null) return;
+      const loan = loans[selectedLoanIndex];
+      const field = document.getElementById("corrField").value;
+
+      document.getElementById("corrActual").value =
+        field === "monto" ? String(loan.monto) : String(loan.porcentaje);
+    });
+
+    document.getElementById("saveCorrBtn").addEventListener("click", () => {
+      if (selectedLoanIndex === null) return;
+
+      const loan = loans[selectedLoanIndex];
+      const field = document.getElementById("corrField").value;
+      const actual = document.getElementById("corrActual").value.trim();
+      const nuevo = document.getElementById("corrNuevo").value.trim();
+      const motivo = document.getElementById("corrMotivo").value.trim();
+
+      if (!nuevo || !motivo) {
+        alert("Escribe el nuevo valor y el motivo.");
+        return;
+      }
+
+      const corr = {
+        id: cryptoId(),
+        fechaKey: Auth.todayKey(),
+        fecha: new Date().toLocaleDateString("es-CO"),
+        hora: nowLabel(),
+        estado: "pendiente",
+        cobrador: username,
+
+        loanId: loan.id,
+        cliente: loan.cliente,
+
+        campo: field,
+        valorActual: actual,
+        valorSolicitado: nuevo,
+        motivo
+      };
+
+      const all = readCorr();
+      all.push(corr);
+      writeCorr(all);
+
+      corrDialog.close();
+      showMsg("Solicitud enviada ✅ (queda pendiente para el administrador).", "ok");
+    });
+
+    // ========= Export CSV =========
+    document.getElementById("exportMyCSV").addEventListener("click", () => {
+      const header = ["fecha","cliente","monto","porcentaje","obs","creadoPor"];
+      const rows = loans.map(l => [
+        l.fecha,
+        l.cliente,
+        l.monto,
+        l.porcentaje,
+        (l.obs || "").replaceAll(",", " "),
+        l.creadoPor
+      ]);
+
+      const csv = [header.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `mis_prestamos_${username}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // ========= Logout =========
+    document.getElementById("logoutBtn").addEventListener("click", () => Auth.logout("./index.html"));
+
+    // ========= Utils =========
+    function escapeHTML(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function cryptoId(){
+      return "id_" + Math.random().toString(16).slice(2) + "_" + Date.now().toString(16);
+    }
+
+    refreshAll();
+  </script>
+</body>
+</html>
