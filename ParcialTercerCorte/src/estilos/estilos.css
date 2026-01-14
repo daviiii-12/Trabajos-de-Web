@@ -4,6 +4,7 @@
   --chip:#22306a; --chip-ok:#174424; --chip-ok-b:#1f7a37;
   --stroke:rgba(255,255,255,.08);
   --shadow:0 14px 30px rgba(0,0,0,.45);
+  --crop:6px; /* oculta 6px del borde inferior de la carta */
 }
 
 *{box-sizing:border-box}
@@ -30,17 +31,18 @@ body{
 
 /* Contenedor */
 .contenedor{
-  max-width:1280px; margin:0 auto; padding:20px;
+  max-width:1320px; margin:0 auto; padding:20px;
   padding-bottom: max(20px, env(safe-area-inset-bottom));
 }
 
 /* ===== Layout de cartas ===== */
 .fila{
-  display:flex; gap:22px; align-items:stretch;
-  justify-content:center;            /* centrado en desktop */
-  overflow-x:auto; padding:8px 4px 18px;
-  scroll-snap-type: x proximity;
-  margin: 0 auto;
+  display:flex; gap:24px; align-items:stretch;
+  justify-content:center;            /* centradas en desktop */
+  overflow-x:auto; overflow-y:hidden; /* recorta cualquier sobrante vertical */
+  padding:8px 4px 18px;
+  scroll-snap-type:x proximity;
+  margin:0 auto;
 }
 .fila::-webkit-scrollbar{height:10px}
 .fila::-webkit-scrollbar-thumb{background:#31407a;border-radius:999px}
@@ -48,13 +50,17 @@ body{
 /* -------- Flip por CARA + efecto de presión -------- */
 .wrap{
   position:relative;
-  width: clamp(300px, 30vw, 380px);  /* cartas más grandes en PC */
+  width: clamp(320px, 30vw, 420px);  /* cartas más grandes en PC */
   aspect-ratio: 7 / 10;              /* altura proporcional */
   scroll-snap-align:start;
   border-radius:14px;
   filter: drop-shadow(0 10px 24px rgba(0,0,0,.5));
   perspective:1200px; overflow:hidden;
   will-change:transform; transition: transform .12s ease;
+
+  /* 🔒 Oculta unos pixeles del borde inferior (adiós “botón fantasma”) */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - var(--crop)), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 calc(100% - var(--crop)), transparent 100%);
 }
 .wrap.is-press{ transform: translateY(4px); }
 
@@ -78,21 +84,21 @@ body{
 /* Frente */
 .frente-arte{
   flex:1; display:grid; place-items:center; background:#0a0f24;
-  min-height: 56%; /* reserva aire para la info */
+  min-height:56%;
 }
 .frente-arte img{ width:100%; height:100%; object-fit:contain; display:block; }
 
-/* MÁS AIRE abajo para que no se “corten” los botones */
+/* Más aire abajo para los botones */
 .frente-info{
   flex:0 0 auto;
-  padding:14px 16px 28px;  /* <— subí el bottom */
+  padding:14px 16px 30px;
   background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.35) 35%, rgba(0,0,0,.6));
   display:flex; flex-direction:column; gap:12px;
 }
 .header{ display:flex; justify-content:space-between; align-items:center; gap:10px; min-width:0; }
 .nombre{
   margin:0; font-weight:800; letter-spacing:.2px;
-  font-size: clamp(1rem, 1.2vw, 1.14rem);
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .badge{
@@ -104,26 +110,21 @@ body{
 .actions{ display:flex; gap:10px; flex-wrap:wrap; padding-bottom:2px }
 .actions .btn{ white-space:nowrap }
 
-/* Botones: sin corte visual */
+/* Botones */
 .btn{
   appearance:none; border:none; cursor:pointer;
   background:linear-gradient(180deg, #2a3a8c, #1f2c73);
   color:white; padding:12px 16px; border-radius:10px;
   font-weight:700; letter-spacing:.2px; box-shadow: var(--shadow);
   transition: transform .05s ease, filter .2s ease;
-  font-size: .98rem;
-  line-height: 1.3;
+  font-size:.98rem; line-height:1.3;
   display:inline-flex; align-items:center; justify-content:center;
-  min-height: 44px;  /* <— subí altura mínima */
+  min-height:44px;
 }
 .btn:hover{filter:brightness(1.08)}
 .btn:active{transform: translateY(1px) scale(.98)}
 .btn-sec{ background:linear-gradient(180deg, #2a334e, #1b2236) }
 .btn-ghost{ background:transparent; border:1px solid rgba(255,255,255,.25) }
-
-/* El “botón fantasma”: oculto el Cancelar deshabilitado (solo el ghost) */
-.btn-ghost:disabled{ display:none !important }
-
 .is-hidden{ display:none !important }
 
 /* Dorso (3D) */
@@ -133,7 +134,7 @@ model-viewer{ width:100%; height:100%; display:block; }
   display:flex; gap:10px; align-items:center; justify-content:space-between;
   padding:12px 16px; border-top:1px solid var(--stroke);
   background: linear-gradient(180deg, rgba(0,0,0,.2), rgba(0,0,0,.45));
-  flex-wrap: wrap;
+  flex-wrap:wrap;
 }
 .dorso-left{ display:flex; align-items:center; gap:10px; min-width:0 }
 .thumb{ width:40px; height:40px; object-fit:contain; background:#0a0f24; border-radius:8px; border:1px solid var(--stroke) }
@@ -154,21 +155,21 @@ model-viewer{ width:100%; height:100%; display:block; }
     overflow-x:visible;
     justify-items:center;
   }
-  .wrap{ width: min(44vw, 360px); }
-  .btn{ font-size:.92rem; padding:10px 14px; min-height: 40px; }
+  .wrap{ width:min(44vw, 360px); }
+  .btn{ font-size:.92rem; padding:10px 14px; min-height:40px; }
   .meta{ font-size:.88rem }
 }
 
 @media (max-width: 480px){
-  .fila{ grid-template-columns: 1fr; }
-  .wrap{ width: min(92vw, 420px); }
-  .btn{ font-size:.9rem; padding:10px 12px; min-height: 40px; }
+  .fila{ grid-template-columns:1fr; }
+  .wrap{ width:min(92vw, 420px); }
+  .btn{ font-size:.9rem; padding:10px 12px; min-height:40px; }
   .actions{ gap:8px }
 }
 
 /* Desktop grande */
-@media (min-width: 1280px){
-  .wrap{ width: clamp(320px, 26vw, 420px); }
+@media (min-width: 1440px){
+  .wrap{ width: clamp(360px, 28vw, 460px); }
 }
 
-/* Nota: en 768px paso a 2 columnas; en 480px a 1; botones tienen min-height 44 y la franja info más padding abajo. */
+/* Nota rápida: responsive en 768px (2 col) y 480px (1 col); uso mask-image para ocultar 6px del borde inferior y evitar el “fantasma”. */

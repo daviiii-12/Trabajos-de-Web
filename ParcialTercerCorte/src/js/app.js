@@ -145,14 +145,17 @@
     btnInvocar.disabled = isInvocada;
     btnInvocar.addEventListener('click', () => invocar(k, false));
 
-    const btnCancelarInv = document.createElement('button');
-    btnCancelarInv.className = 'btn btn-ghost';
-    btnCancelarInv.type = 'button';
-    btnCancelarInv.textContent = 'Cancelar';
-    btnCancelarInv.disabled = !isInvocada;
-    btnCancelarInv.addEventListener('click', () => cancelarInvocacion(k, false));
+    actionsA.append(btnVer3D, btnInvocar);
 
-    actionsA.append(btnVer3D, btnInvocar, btnCancelarInv);
+    // Mostrar Cancelar en FRENTE solo cuando está invocada
+    if (isInvocada) {
+      const btnCancelarInv = document.createElement('button');
+      btnCancelarInv.className = 'btn btn-ghost';
+      btnCancelarInv.type = 'button';
+      btnCancelarInv.textContent = 'Cancelar';
+      btnCancelarInv.addEventListener('click', () => cancelarInvocacion(k, false));
+      actionsA.appendChild(btnCancelarInv);
+    }
 
     frenteInfo.append(header, meta, actionsA);
     frente.append(frenteArte, frenteInfo);
@@ -169,7 +172,7 @@
     if (imagen) mv.setAttribute('poster', imagen);
     mv.setAttribute('ar','');
     mv.setAttribute('ar-modes','webxr scene-viewer quick-look');
-    mv.setAttribute('camera-controls',''); // manual
+    mv.setAttribute('camera-controls',''); // control manual
     mv.setAttribute('touch-action','pan-y');
     mv.setAttribute('shadow-intensity','1');
     mv.setAttribute('exposure','1');
@@ -192,17 +195,22 @@
     const actionsB = document.createElement('div');
     actionsB.className = 'actions';
 
-    const btnInvocarB = document.createElement('button');
-    btnInvocarB.className = 'btn';
-    btnInvocarB.type = 'button';
-    btnInvocarB.textContent = 'Invocar';
-    btnInvocarB.addEventListener('click', () => invocar(k, true));
-
-    const btnCancelarInvB = document.createElement('button');
-    btnCancelarInvB.className = 'btn btn-ghost';
-    btnCancelarInvB.type = 'button';
-    btnCancelarInvB.textContent = 'Cancelar';
-    btnCancelarInvB.addEventListener('click', () => cancelarInvocacion(k, true));
+    // En 3D: si NO está invocada → Invocar; si SÍ → Cancelar (funcional)
+    if (!isInvocada) {
+      const btnInvocarB = document.createElement('button');
+      btnInvocarB.className = 'btn';
+      btnInvocarB.type = 'button';
+      btnInvocarB.textContent = 'Invocar';
+      btnInvocarB.addEventListener('click', () => invocar(k, true));
+      actionsB.appendChild(btnInvocarB);
+    } else {
+      const btnCancelarInvB = document.createElement('button');
+      btnCancelarInvB.className = 'btn btn-ghost';
+      btnCancelarInvB.type = 'button';
+      btnCancelarInvB.textContent = 'Cancelar';
+      btnCancelarInvB.addEventListener('click', () => cancelarInvocacion(k, true));
+      actionsB.appendChild(btnCancelarInvB);
+    }
 
     const btnVolver = document.createElement('button');
     btnVolver.className = 'btn btn-sec';
@@ -213,30 +221,34 @@
       wrap.classList.remove('flipped');
     });
 
-    actionsB.append(btnInvocarB, btnCancelarInvB, btnVolver);
+    actionsB.append(btnVolver);
     bar.append(left, actionsB);
 
     dorso.append(visorBox, bar);
 
     wrap.append(frente, dorso);
-
-    // visibilidad de botones según estado
-    toggleBotonera({ isInvocada, btnInvocar, btnCancelarInv, btnInvocarB, btnCancelarInvB });
-
     return wrap;
   }
 
-  function toggleBotonera({ isInvocada, btnInvocar, btnCancelarInv, btnInvocarB, btnCancelarInvB }) {
-    btnInvocar.disabled = isInvocada;
-    btnCancelarInv.disabled = !isInvocada;
-    // En 3D si está invocada, oculto ambas y dejo solo Volver
-    if (isInvocada) {
-      btnInvocarB.classList.add('is-hidden');
-      btnCancelarInvB.classList.add('is-hidden');
-    } else {
-      btnInvocarB.classList.remove('is-hidden');
-      btnCancelarInvB.classList.add('is-hidden');
-    }
+  /* --- Limpieza anti-fantasma: elimina cualquier Cancelar que no deba existir --- */
+  function cleanupGhosts() {
+    document.querySelectorAll('.wrap').forEach(wrap => {
+      const key = wrap.dataset.key;
+      const isInvocada = estado.get(key)?.status === 'Invocada';
+
+      // Frente: si NO está invocada, quitar cualquier btn-ghost residual
+      if (!isInvocada) {
+        wrap.querySelectorAll('.cara-frente .btn-ghost').forEach(b => b.remove());
+      }
+
+      // Dorso: si NO está invocada, no debe haber btn-ghost; si SÍ, debe haber solo uno
+      const dorsos = wrap.querySelectorAll('.cara-dorso .btn-ghost');
+      if (!isInvocada && dorsos.length) dorsos.forEach(b => b.remove());
+      if (isInvocada && dorsos.length > 1) {
+        // deja solo el primero
+        dorsos.forEach((b,i)=>{ if(i>0) b.remove(); });
+      }
+    });
   }
 
   function refreshCard(k, keepFlip=false){
@@ -249,6 +261,7 @@
     if (flipped) neu.classList.add('flipped');
     if (first) neu.classList.add('first');
     fila.replaceChild(neu, old);
+    cleanupGhosts(); // <-- anti-fantasma
   }
 
   function render() {
@@ -258,6 +271,7 @@
       if (!d) continue;
       fila.appendChild(crearCarta(d));
     }
+    cleanupGhosts(); // <-- anti-fantasma
   }
 
   function setEstado(k, nuevo) {
