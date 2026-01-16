@@ -1,42 +1,35 @@
 /* =========================
-   responsive.css
-   - Mobile-first adjustments
-   - Grid layouts for larger screens
+   responsive.css (global)
+   - Desktop scaling (bigger UI)
+   - Stable visuals on mobile
    ========================= */
 
-/* ---------- Utilities ---------- */
-.hide-mobile { display: none; }
-.only-mobile { display: block; }
-
-/* ---------- Small phones tweaks ---------- */
+/* ---------- Small phones ---------- */
 @media (max-width: 360px){
-  .container{ padding: 24px 14px; }
+  .container{ padding: 22px 14px; }
   .card{ padding: 16px; border-radius: 16px; }
   .btn{ padding: 11px 12px; border-radius: 14px; }
   .input{ padding: 11px 12px; border-radius: 14px; }
+  .card-title{ font-size: 17px; }
 }
 
 /* ---------- Tablets and up ---------- */
 @media (min-width: 768px){
   :root{
     --pad: 18px;
+    --maxw: 1180px;
   }
 
-  .hide-mobile { display: block; }
-  .only-mobile { display: none; }
+  /* Buttons: not full width on desktop */
+  .btn{ width: auto; padding: 12px 16px; }
 
-  /* Cards can breathe a bit more */
-  .card{ padding: 22px; }
-
-  /* Two-column layout helper */
+  /* Grids */
   .grid-2{
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     align-items: stretch;
   }
-
-  /* Three-column layout helper */
   .grid-3{
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -44,37 +37,74 @@
     align-items: stretch;
   }
 
-  /* Buttons don't need full width on desktop, unless you want */
-  .btn{
-    width: auto;
-    padding: 12px 16px;
-  }
+  /* Make cards breathe */
+  .card{ padding: 22px; }
+  .card-title{ font-size: 20px; }
+  .card-subtitle{ font-size: 14px; }
+
+  /* Table: more readable */
+  th, td{ font-size: 14px; padding: 12px 12px; }
 }
 
-/* ---------- Large desktops ---------- */
+/* ---------- Laptops / Desktop (IMPORTANT) ---------- */
 @media (min-width: 1024px){
   :root{
-    --pad: 20px;
-    --maxw: 1120px;
+    --pad: 22px;
+    --maxw: 1240px;
+
+    /* On desktop, make UI less "washed" */
+    --surface: rgba(255,255,255,0.12);
+    --surface-2: rgba(255,255,255,0.18);
+    --border: rgba(255,255,255,0.20);
+
+    --blur: 12px;
   }
 
-  .card-title{ font-size: 20px; }
-}
+  /* Bigger typography */
+  .brand h1{ font-size: 18px; }
+  .brand p{ font-size: 13px; }
 
-/* ---------- Table improvements on mobile ---------- */
-@media (max-width: 767px){
-  /* Tables already scroll horizontally via .table-wrap */
-  table{
-    min-width: 680px;
-  }
-}
+  .card-title{ font-size: 22px; }
+  .card-subtitle{ font-size: 15px; }
 
-/* ---------- Optional: center hero sections nicely ---------- */
-@media (min-width: 900px){
+  .small{ font-size: 13px; }
+
+  /* Bigger controls */
+  .btn{ padding: 13px 18px; border-radius: 16px; font-size: 14px; }
+  .input{ padding: 13px 14px; border-radius: 16px; font-size: 14px; }
+  .badge{ font-size: 13px; padding: 7px 12px; }
+
+  /* Tables: easier to read */
+  th, td{ font-size: 14px; padding: 13px 14px; }
+
+  /* Hero layout (index / login pages) */
   .hero{
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
     gap: 18px;
     align-items: center;
+  }
+}
+
+/* ---------- Big screens ---------- */
+@media (min-width: 1280px){
+  :root{
+    --maxw: 1320px;
+  }
+
+  .card{ padding: 24px; }
+  .card-title{ font-size: 24px; }
+}
+
+/* ---------- Mobile tables: keep scroll but avoid "micro text" ---------- */
+@media (max-width: 767px){
+  table{ min-width: 760px; }
+  th, td{ font-size: 13px; }
+}
+
+/* ---------- Mobile: make sure no blur glitches ---------- */
+@media (max-width: 600px){
+  :root{
+    --blur: 0px;
   }
 }

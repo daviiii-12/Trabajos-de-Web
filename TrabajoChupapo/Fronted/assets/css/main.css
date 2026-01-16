@@ -1,52 +1,67 @@
 /* =========================
    main.css (global styles)
    - Mobile-first
-   - Simple, clean, modern
+   - Clean, modern
+   - Fix mobile transparency glitches
    ========================= */
 
 /* -------- CSS Variables -------- */
 :root{
+  /* Background */
   --bg: #0b1020;
-  --surface: rgba(255,255,255,0.08);
-  --surface-2: rgba(255,255,255,0.12);
-  --border: rgba(255,255,255,0.16);
 
+  /* Surfaces (tuned to avoid "double transparency") */
+  --surface: rgba(255,255,255,0.10);
+  --surface-2: rgba(255,255,255,0.14);
+  --border: rgba(255,255,255,0.18);
+
+  /* Text */
   --text: rgba(255,255,255,0.92);
-  --muted: rgba(255,255,255,0.68);
+  --muted: rgba(255,255,255,0.70);
 
+  /* Accents */
   --primary: #6ee7ff;     /* cyan */
   --primary-2: #a78bfa;   /* purple */
   --danger: #ff6b6b;
   --ok: #34d399;
 
+  /* Shadows & radius */
   --shadow: 0 14px 40px rgba(0,0,0,0.35);
+  --shadow-soft: 0 10px 28px rgba(0,0,0,0.22);
   --radius: 18px;
 
+  /* Layout */
   --maxw: 1080px;
   --pad: 16px;
 
+  /* Font */
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+
+  /* Backdrop blur (we will disable on mobile to avoid artifacts) */
+  --blur: 10px;
 }
 
 /* -------- Reset / Base -------- */
 *{ box-sizing: border-box; }
 html, body{ height: 100%; }
+
 body{
   margin: 0;
   font-family: var(--font);
   color: var(--text);
-  background: radial-gradient(1200px 700px at 15% 10%, rgba(110,231,255,0.20), transparent 60%),
-              radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,0.18), transparent 55%),
-              radial-gradient(700px 500px at 50% 95%, rgba(52,211,153,0.10), transparent 55%),
-              var(--bg);
   line-height: 1.45;
+
+  /* Background gradients */
+  background:
+    radial-gradient(1200px 700px at 15% 10%, rgba(110,231,255,0.20), transparent 60%),
+    radial-gradient(900px 600px at 80% 20%, rgba(167,139,250,0.18), transparent 55%),
+    radial-gradient(700px 500px at 50% 95%, rgba(52,211,153,0.10), transparent 55%),
+    var(--bg);
 }
 
 img{ max-width: 100%; display: block; }
 a{ color: inherit; text-decoration: none; }
-button, input, select{
-  font-family: inherit;
-}
+button, input, select{ font-family: inherit; }
 
 /* -------- Layout helpers -------- */
 .container{
@@ -68,18 +83,28 @@ button, input, select{
 .mb-2{ margin-bottom: 14px; }
 .mb-3{ margin-bottom: 22px; }
 
-/* -------- Top bar (optional) -------- */
+/* -------- Top bar -------- */
 .topbar{
   position: sticky;
   top: 0;
   z-index: 10;
-  backdrop-filter: blur(10px);
-  background: rgba(11,16,32,0.55);
+
+  /* Use a more stable background to avoid "double glass" */
+  background: rgba(11,16,32,0.72);
   border-bottom: 1px solid var(--border);
 }
-.topbar .container{
-  padding: 14px var(--pad);
+
+/* Enable blur only when supported (and later we turn it off on mobile anyway) */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+  .topbar{
+    background: rgba(11,16,32,0.55);
+    -webkit-backdrop-filter: blur(var(--blur));
+    backdrop-filter: blur(var(--blur));
+  }
 }
+
+.topbar .container{ padding: 14px var(--pad); }
+
 .brand{
   display: flex;
   align-items: center;
@@ -105,14 +130,18 @@ button, input, select{
 
 /* -------- Cards / Panels -------- */
 .card{
-  background: linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06));
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 18px;
+
+  /* Prevent weird blending in some mobile browsers */
+  transform: translateZ(0);
 }
+
 .card.soft{
-  box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+  box-shadow: var(--shadow-soft);
 }
 
 .card-title{
@@ -136,15 +165,15 @@ button, input, select{
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px 14px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.10);
   color: var(--text);
   cursor: pointer;
   transition: transform .08s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
   user-select: none;
 }
 .btn:hover{
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.14);
+  border-color: rgba(255,255,255,0.24);
 }
 .btn:active{ transform: translateY(1px); }
 .btn:disabled{ opacity: 0.55; cursor: not-allowed; }
@@ -159,45 +188,36 @@ button, input, select{
   background: linear-gradient(135deg, rgba(110,231,255,1), rgba(167,139,250,1));
 }
 
-.btn.ghost{
-  background: transparent;
-}
+.btn.ghost{ background: transparent; }
+
 .btn.danger{
   border: none;
-  background: rgba(255,107,107,0.16);
+  background: rgba(255,107,107,0.18);
   color: rgba(255,255,255,0.92);
 }
 .btn.danger:hover{
-  background: rgba(255,107,107,0.22);
+  background: rgba(255,107,107,0.24);
 }
 
 /* -------- Inputs -------- */
-.field{
-  display: grid;
-  gap: 8px;
-}
-.label{
-  font-size: 13px;
-  color: var(--muted);
-}
+.field{ display: grid; gap: 8px; }
+.label{ font-size: 13px; color: var(--muted); }
+
 .input{
   width: 100%;
   padding: 12px 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.09);
   color: var(--text);
   outline: none;
   transition: border-color .18s ease, background .18s ease;
 }
 .input:focus{
   border-color: rgba(110,231,255,0.6);
-  background: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.12);
 }
-.help{
-  font-size: 12px;
-  color: var(--muted);
-}
+.help{ font-size: 12px; color: var(--muted); }
 
 /* -------- Badges -------- */
 .badge{
@@ -207,19 +227,19 @@ button, input, select{
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.08);
   font-size: 12px;
   color: var(--muted);
 }
 .badge.ok{
-  border-color: rgba(52,211,153,0.35);
+  border-color: rgba(52,211,153,0.38);
   color: rgba(52,211,153,0.95);
-  background: rgba(52,211,153,0.10);
+  background: rgba(52,211,153,0.12);
 }
 .badge.warn{
-  border-color: rgba(255,214,102,0.35);
+  border-color: rgba(255,214,102,0.38);
   color: rgba(255,214,102,0.95);
-  background: rgba(255,214,102,0.10);
+  background: rgba(255,214,102,0.12);
 }
 
 /* -------- Tables (base) -------- */
@@ -227,36 +247,57 @@ button, input, select{
   overflow-x: auto;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.06);
 }
 table{
   width: 100%;
   border-collapse: collapse;
-  min-width: 720px; /* permite scroll en móvil */
+  min-width: 720px;
 }
 th, td{
   padding: 12px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.10);
+  border-bottom: 1px solid rgba(255,255,255,0.12);
   font-size: 14px;
 }
 th{
   text-align: left;
-  color: rgba(255,255,255,0.78);
+  color: rgba(255,255,255,0.80);
   font-weight: 700;
 }
 tr:hover td{
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.05);
 }
 
 /* -------- Footer text -------- */
-.small{
-  font-size: 12px;
-  color: var(--muted);
-}
+.small{ font-size: 12px; color: var(--muted); }
 
-/* -------- Focus (accessibility) -------- */
+/* -------- Focus -------- */
 :focus-visible{
   outline: 2px solid rgba(110,231,255,0.6);
   outline-offset: 2px;
   border-radius: 12px;
+}
+
+/* =========================
+   MOBILE FIX: Transparency glitches
+   - Some mobile browsers glitch with blur + gradients.
+   - We make surfaces more "solid" and disable blur.
+   ========================= */
+@media (max-width: 600px){
+  :root{
+    --blur: 0px;
+    --surface: rgba(255,255,255,0.12);
+    --surface-2: rgba(255,255,255,0.16);
+  }
+
+  .topbar{
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: rgba(11,16,32,0.85);
+  }
+
+  .card{
+    /* More stable card background on mobile */
+    background: rgba(255,255,255,0.12);
+  }
 }
