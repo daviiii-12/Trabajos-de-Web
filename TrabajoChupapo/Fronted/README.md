@@ -24,35 +24,31 @@ La información se guarda en el navegador usando **localStorage** y **sessionSto
 
 ### Opción B: abrir directo
 Abre `index.html` con doble clic.
-> Nota: algunas funciones pueden comportarse mejor con Live Server.
 
 ---
 
-## 🧭 Flujo de pantallas
-1. `index.html` → elegir rol (Administrador / Cobrador)
-2. `login.html` → login (demo: solo valida que no esté vacío)
-3. Redirección:
+## 🧭 Flujo de pantallas (nuevo)
+1. `index.html` → **Login inmediato**
+2. El sistema detecta el rol (demo) y redirige:
    - admin → `admin.html`
    - cobrador → `cobrador.html`
+
+> En versión final el rol se definirá por backend (correo + contraseña).
 
 ---
 
 ## 🔐 Roles y reglas (demo)
-### Cobrador
-- Puede:
-  - Registrar préstamos
-  - Registrar pagos/abonos
-  - Exportar sus préstamos a CSV
-  - Solicitar correcciones
-- No puede:
-  - Editar monto/porcentaje después de guardar (regla antifraude)
 
 ### Administrador
-- Puede:
-  - Ver solicitudes de corrección (pendientes)
-  - Aprobar/rechazar (demo)
-  - Cerrar el día (check importante)
-  - Exportar carteras (demo) a CSV
+- Aprobar/rechazar solicitudes de corrección
+- Cerrar el día
+- Exportar datos (demo)
+
+### Cobrador
+- Registrar préstamos
+- Registrar pagos/abonos
+- Solicitar correcciones
+- Exportar sus préstamos (CSV)
 
 ---
 
@@ -60,7 +56,7 @@ Abre `index.html` con doble clic.
 
 ### sessionStorage (se borra al cerrar pestaña)
 - `role`: `"admin"` o `"cobrador"`
-- `username`: usuario digitado en login
+- `username`: usuario/correo digitado en login
 
 ### localStorage (permanece hasta que lo borres)
 - `closedDay:YYYY-MM-DD`: marca si el día está cerrado (admin)
@@ -78,14 +74,6 @@ En `admin.html` existe el botón **“Cerrar día”**:
 ---
 
 ## ♻️ Reset rápido de la demo
-Si quieres “borrar todo”:
-
-### Opción 1 (desde el navegador)
-1. Abre DevTools (F12)
-2. Application → Storage
-3. Clear site data
-
-### Opción 2 (desde consola)
 En la consola del navegador:
 ```js
 localStorage.clear();
