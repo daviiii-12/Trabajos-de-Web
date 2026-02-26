@@ -1,188 +1,177 @@
 import React, { useState } from 'react';
-import { Shield, FileText, Calendar, MessageCircle, AlertTriangle, CheckCircle, Clock, RefreshCw, Send } from 'lucide-react';
-import './index.css'
+import { Shield, FileText, Calendar, MessageCircle, Send, User, Bot, CheckCircle, FileJson } from 'lucide-react';
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState('triaje');
+  const [activeTab, setActiveTab] = useState('live_chat');
+  const [mensaje, setMensaje] = useState('');
+  
+  // Estado simulado del chat
+  const [chat, setChat] = useState([
+    { sender: 'bot', text: '¡Hola! Soy Victoria, tu asistente legal B2B. ¿En qué te puedo ayudar hoy?' }
+  ]);
+
+  // Simular envío de mensaje
+  const enviarMensaje = (e) => {
+    e.preventDefault();
+    if (!mensaje.trim()) return;
+    
+    setChat([...chat, { sender: 'user', text: mensaje }]);
+    setMensaje('');
+    
+    // Simular respuesta de Victoria después de 1 segundo
+    setTimeout(() => {
+      setChat(prev => [...prev, { 
+        sender: 'bot', 
+        text: 'He procesado tu solicitud. Estoy extrayendo los datos para generar el Acuerdo de Confidencialidad.' 
+      }]);
+    }, 1500);
+  };
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans">
-      {/* SIDEBAR */}
-      <div className="w-64 bg-slate-900 text-white flex flex-col">
+    <div className="flex h-screen bg-slate-50 font-sans">
+      {/* SIDEBAR CORPORATIVO */}
+      <div className="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-10">
         <div className="p-6 flex items-center gap-3 border-b border-slate-800">
           <Shield className="text-blue-400" size={32} />
           <div>
             <h1 className="text-xl font-bold tracking-wider">VICTORIA</h1>
-            <p className="text-xs text-slate-400">LegalTech B2B</p>
+            <p className="text-xs text-slate-400">Powered by Funnelchat</p>
           </div>
         </div>
         
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 p-4 space-y-2 mt-4">
           <button 
-            onClick={() => setActiveTab('triaje')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'triaje' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+            onClick={() => setActiveTab('live_chat')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${activeTab === 'live_chat' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
             <MessageCircle size={20} />
-            <span>Triaje Cognitivo</span>
+            <span>Simulador Interactivo</span>
           </button>
           <button 
-            onClick={() => setActiveTab('escribiente')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'escribiente' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors font-medium ${activeTab === 'dashboard' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
             <FileText size={20} />
-            <span>Escribiente Digital</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('seguimiento')}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === 'seguimiento' ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
-            <Calendar size={20} />
-            <span>Agenda y Envíos</span>
+            <span>Bandeja B2B</span>
           </button>
         </nav>
-        
-        <div className="p-4 border-t border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center font-bold">A</div>
-            <div className="text-sm">
-              <p className="font-semibold">Perfil Abogado</p>
-              <p className="text-slate-400 text-xs">Firma Partner</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm px-8 py-4 flex justify-between items-center">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        <header className="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
           <h2 className="text-2xl font-bold text-slate-800">
-            {activeTab === 'triaje' && 'Bandeja de Entrada (NLP)'}
-            {activeTab === 'escribiente' && 'Revisión Documental y Aprobación'}
-            {activeTab === 'seguimiento' && 'Radar de Vencimientos'}
+            {activeTab === 'live_chat' && 'Demostración en Vivo: Cliente vs Victoria'}
+            {activeTab === 'dashboard' && 'Panel de Control del Abogado'}
           </h2>
-          <div className="flex gap-4">
-            <span className="flex items-center gap-2 text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full font-medium">
-              <CheckCircle size={16} /> API Conectada
-            </span>
-            <span className="flex items-center gap-2 text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium">
-              <RefreshCw size={16} /> Funnelchat Activo
-            </span>
-          </div>
+          <span className="flex items-center gap-2 text-sm bg-green-100 text-green-700 px-4 py-1.5 rounded-full font-bold shadow-sm">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> 
+            Conectado a Funnelchat
+          </span>
         </header>
 
-        <main className="p-8">
-          {/* TAB 1: TRIAJE */}
-          {activeTab === 'triaje' && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left">
-                <thead className="bg-gray-50 text-gray-600 text-sm">
-                  <tr>
-                    <th className="p-4">ID Caso</th>
-                    <th className="p-4">Cliente (WhatsApp)</th>
-                    <th className="p-4">Tipo Identificado</th>
-                    <th className="p-4">Riesgo / Prioridad</th>
-                    <th className="p-4">Estado Victoria</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  <tr className="hover:bg-gray-50">
-                    <td className="p-4 font-mono text-sm text-gray-500">#FC-001</td>
-                    <td className="p-4 font-medium">TechCorp S.A.S.</td>
-                    <td className="p-4">Acuerdo Confidencialidad</td>
-                    <td className="p-4"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">BAJO</span></td>
-                    <td className="p-4"><span className="flex items-center gap-2 text-blue-600 text-sm"><CheckCircle size={16}/> Auto-Resuelto</span></td>
-                  </tr>
-                  <tr className="hover:bg-gray-50">
-                    <td className="p-4 font-mono text-sm text-gray-500">#FC-002</td>
-                    <td className="p-4 font-medium">Constructora Gómez</td>
-                    <td className="p-4">Requerimiento DIAN</td>
-                    <td className="p-4"><span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">ALTO</span></td>
-                    <td className="p-4"><span className="flex items-center gap-2 text-orange-600 text-sm"><AlertTriangle size={16}/> Escala a Abogado</span></td>
-                  </tr>
-                  <tr className="hover:bg-gray-50">
-                    <td className="p-4 font-mono text-sm text-gray-500">#FC-003</td>
-                    <td className="p-4 font-medium">Distribuidora Valle</td>
-                    <td className="p-4">Cobro Pre-Jurídico</td>
-                    <td className="p-4"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">MEDIO</span></td>
-                    <td className="p-4"><span className="flex items-center gap-2 text-gray-600 text-sm"><Clock size={16}/> Extrayendo Datos</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {/* TAB 2: ESCRIBIENTE */}
-          {activeTab === 'escribiente' && (
-            <div className="grid grid-cols-2 gap-8">
-              {/* Left Column: Data extracted */}
-              <div className="space-y-6">
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                    <MessageCircle className="text-blue-500" /> Chat Funnelchat
-                  </h3>
-                  <div className="bg-white p-4 rounded-lg shadow-sm mb-4 text-sm">
-                    <p className="text-slate-500 mb-1 font-semibold">Cliente:</p>
-                    <p>"Hola, voy a contratar un desarrollador y necesito un NDA rápido. La empresa es TechCorp S.A.S., NIT 900.123.456-7. El representante legal soy yo, Juan Pérez."</p>
+        {/* PESTAÑA PRINCIPAL: CHAT + CEREBRO */}
+        {activeTab === 'live_chat' && (
+          <div className="flex-1 flex overflow-hidden p-6 gap-6 bg-slate-100">
+            
+            {/* COLUMNA IZQUIERDA: EL CHAT DEL CLIENTE */}
+            <div className="w-1/2 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-emerald-600 p-4 text-white flex items-center gap-3 shadow-md z-10">
+                <div className="bg-white/20 p-2 rounded-full"><User size={20} /></div>
+                <div>
+                  <h3 className="font-bold">WhatsApp / Funnelchat</h3>
+                  <p className="text-xs text-emerald-100">Vista del Cliente (PyME)</p>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6 bg-[#efeae2] space-y-4">
+                {chat.map((msg, idx) => (
+                  <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm relative ${msg.sender === 'user' ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm' : 'bg-white text-slate-800 rounded-tl-sm'}`}>
+                      <p className="text-sm leading-relaxed">{msg.text}</p>
+                      <span className="text-[10px] text-slate-400 block text-right mt-1">Ahora</span>
+                    </div>
                   </div>
-                  
-                  <h3 className="text-lg font-bold mb-4 mt-6">JSON Extraído (Motor NLP)</h3>
-                  <pre className="bg-slate-900 text-green-400 p-4 rounded-lg text-sm font-mono overflow-auto">
-{`{
+                ))}
+              </div>
+
+              <form onSubmit={enviarMensaje} className="bg-[#f0f2f5] p-4 flex gap-2">
+                <input 
+                  type="text" 
+                  value={mensaje}
+                  onChange={(e) => setMensaje(e.target.value)}
+                  placeholder="Escribe como si fueras el cliente (Ej: Necesito un contrato rápido...)"
+                  className="flex-1 rounded-full px-6 py-3 border-none focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                />
+                <button type="submit" className="bg-emerald-600 text-white p-3 rounded-full hover:bg-emerald-700 transition-colors shadow-sm">
+                  <Send size={20} />
+                </button>
+              </form>
+            </div>
+
+            {/* COLUMNA DERECHA: EL CEREBRO DE VICTORIA */}
+            <div className="w-1/2 flex flex-col gap-6">
+              
+              {/* Tarjeta de Extracción JSON */}
+              <div className="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 flex flex-col h-1/2 overflow-hidden">
+                <div className="bg-slate-950 p-4 flex items-center gap-2 border-b border-slate-800">
+                  <FileJson className="text-blue-400" size={20} />
+                  <h3 className="text-white font-bold">Motor NLP: Datos Extraídos</h3>
+                </div>
+                <div className="p-6 overflow-y-auto">
+                  <p className="text-slate-400 text-sm mb-4">El backend en Python está escuchando el chat y estructurando esto en tiempo real:</p>
+                  <pre className="text-green-400 font-mono text-sm leading-relaxed">
+{chat.length > 1 ? `{
   "tipo_documento": "NDA",
-  "partes": {
-    "empresa": "TechCorp S.A.S.",
-    "nit": "900.123.456-7",
-    "representante": "Juan Pérez"
+  "riesgo_legal": "BAJO",
+  "accion_requerida": "Generar PDF",
+  "entidades": {
+    "empresa": "Detectando...",
+    "nit": "Detectando..."
   },
-  "estado_variables": "COMPLETO"
+  "estado": "PROCESANDO"
+}` : `{
+  "estado": "ESPERANDO_MENSAJE"
 }`}
                   </pre>
                 </div>
               </div>
 
-              {/* Right Column: Document & Actions */}
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col">
-                <h3 className="text-lg font-bold mb-4">Vista Previa (Plantilla Inamovible)</h3>
-                <div className="flex-1 bg-gray-50 border border-gray-200 p-8 rounded-lg mb-6 overflow-auto font-serif text-sm">
-                  <h2 className="text-center font-bold mb-6">ACUERDO DE CONFIDENCIALIDAD (NDA)</h2>
-                  <p className="mb-4 text-justify">
-                    Entre los suscritos a saber: Por una parte, [LA FIRMA LEGAL], y por la otra <span className="bg-yellow-200 px-1 font-bold">TECHCORP S.A.S.</span>, identificada con NIT <span className="bg-yellow-200 px-1 font-bold">900.123.456-7</span>, representada legalmente por <span className="bg-yellow-200 px-1 font-bold">JUAN PÉREZ</span>, acuerdan mantener la más estricta confidencialidad sobre la información técnica y comercial compartida...
-                  </p>
+              {/* Tarjeta de Ejecución y Plantilla */}
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-1/2 overflow-hidden">
+                <div className="bg-slate-50 p-4 flex items-center gap-2 border-b border-slate-200">
+                  <FileText className="text-blue-600" size={20} />
+                  <h3 className="font-bold text-slate-800">Ejecución Documental (Plantilla)</h3>
                 </div>
-                
-                <div className="flex gap-4">
-                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold flex justify-center items-center gap-2 transition-colors">
-                    <Send size={18} /> Aprobar y Enviar PDF a WhatsApp
-                  </button>
-                  <button className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-6 py-3 rounded-lg font-bold transition-colors">
-                    Corregir y Re-entrenar
-                  </button>
+                <div className="p-6 flex-1 flex flex-col justify-center items-center text-center">
+                  {chat.length > 2 ? (
+                    <>
+                      <CheckCircle className="text-green-500 mb-3" size={48} />
+                      <h4 className="font-bold text-lg mb-2">Acuerdo de Confidencialidad Generado</h4>
+                      <p className="text-sm text-slate-500 mb-4">El contrato ha sido renderizado e inyectado vía webhook a Funnelchat.</p>
+                      <button className="bg-blue-600 text-white px-6 py-2 rounded-full font-bold shadow-md hover:bg-blue-700">
+                        Ver PDF Final
+                      </button>
+                    </>
+                  ) : (
+                    <p className="text-slate-400 italic">Esperando datos completos para renderizar el documento...</p>
+                  )}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: SEGUIMIENTO */}
-          {activeTab === 'seguimiento' && (
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-red-50 border border-red-200 p-6 rounded-xl">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="bg-red-100 p-3 rounded-lg"><AlertTriangle className="text-red-600" /></div>
-                  <span className="text-xs font-bold text-red-600 bg-red-200 px-2 py-1 rounded">HOY 14:00</span>
-                </div>
-                <h3 className="font-bold text-lg mb-2">Envío Servientrega</h3>
-                <p className="text-sm text-slate-600 mb-4">Radicar Derecho de Petición físico EPS Sanitas.</p>
-                <button className="w-full bg-white text-red-600 border border-red-200 py-2 rounded font-semibold text-sm hover:bg-red-50">Imprimir Guía</button>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="bg-blue-100 p-3 rounded-lg"><CheckCircle className="text-blue-600" /></div>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-200 px-2 py-1 rounded">MAÑANA</span>
-                </div>
-                <h3 className="font-bold text-lg mb-2">Firma Electrónica</h3>
-                <p className="text-sm text-slate-600 mb-4">Hacer ping a TechCorp por contrato NDA pendiente en WhatsApp.</p>
-                <button className="w-full bg-blue-600 text-white py-2 rounded font-semibold text-sm hover:bg-blue-700">Programar Webhook</button>
-              </div>
             </div>
-          )}
-        </main>
+          </div>
+        )}
+
+        {/* PESTAÑA 2: MANTENEMOS EL DASHBOARD VIEJO SOLO POR SI ACASO */}
+        {activeTab === 'dashboard' && (
+           <div className="flex-1 p-8 flex items-center justify-center">
+             <div className="text-center">
+               <Shield className="text-slate-300 mx-auto mb-4" size={64}/>
+               <h2 className="text-2xl font-bold text-slate-400">Bandeja de Entrada B2B</h2>
+               <p className="text-slate-500 mt-2">Usa el simulador para hacer la demostración principal.</p>
+             </div>
+           </div>
+        )}
+
       </div>
     </div>
   );
